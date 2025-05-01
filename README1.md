@@ -2,6 +2,43 @@
 
 This guide provides instructions on setting up, configuring, training, and running predictions for the Drone Image Semantic Segmentation project using a U-Net model.
 
+## Directory Structure
+
+The project follows this structure:
+
+```
+drone_segmentation/
+│
+├── data/                     # (Optional) Placeholder for local dataset storage
+│
+├── outputs/                  # Directory for all generated outputs
+│   ├── models/               # Saved model checkpoints (.pth files)
+│   └── plots/                # Saved loss plots and prediction images (.png files)
+│
+├── src/                      # Source code modules
+│   ├── __init__.py
+│   ├── config.py             # Central configuration file (paths, hyperparameters)
+│   ├── data/                 # Data loading and processing code
+│   │   ├── __init__.py
+│   │   └── dataset.py        # DroneImageDataset class and transforms
+│   ├── models/               # Model definition code
+│   │   ├── __init__.py
+│   │   └── unet.py           # U-Net model architecture (ConvBlock, Encoder, Decoder, UNet)
+│   ├── training/             # Training and evaluation logic
+│   │   ├── __init__.py
+│   │   └── engine.py         # train_one_epoch, evaluate, training_loop functions
+│   └── utils/                # Utility functions
+│       ├── __init__.py
+│       └── helpers.py        # Data splitting, plotting, weight init, etc.
+│
+├── scripts/                  # Executable Python scripts
+│   ├── train.py              # Script to run the training process
+│   └── predict.py            # Script to run predictions and visualize results
+│
+├── requirements.txt          # List of Python package dependencies
+└── README.md                 # Project description (this file or similar)
+```
+
 ## Setup
 
 1.  **Clone the Repository:**
@@ -96,3 +133,49 @@ Ensure your virtual environment is activated and you are in the `drone_segmentat
 ```bash
 python scripts/train.py
 ```
+
+Monitor the console output for training progress and loss values. Check the `outputs/` directory for saved models and the loss plot upon completion.
+
+## Prediction (`scripts/predict.py`)
+
+This script loads a trained model and visualizes its predictions on selected images from the test set.
+
+1.  Loads configuration from `src/config.py`.
+2.  Loads the class dictionary to determine the number of classes.
+3.  Loads the trained U-Net model state dictionary from a specified path.
+4.  Prepares the test dataset (using the same split parameters as training).
+5.  Selects images from the test set (either specified indices or random ones).
+6.  Performs inference using the loaded model on the selected images.
+7.  Generates plots showing the original image, the ground truth mask, and the model's predicted mask side-by-side.
+8.  Saves the prediction plots to `outputs/plots/`.
+
+**How to Run:**
+
+Ensure your virtual environment is activated and you are in the `drone_segmentation` directory.
+
+- **Predict using the default final model (`outputs/models/unet_final.pth`) and show 3 random predictions:**
+
+  ```bash
+  python scripts/predict.py
+  ```
+
+- **Specify a different model checkpoint:**
+
+  ```bash
+  python scripts/predict.py --model_path outputs/models/unet_epoch_100.pth
+  ```
+
+- **Specify the exact indices (from the test set) to visualize (comma-separated):**
+
+  ```bash
+  python scripts/predict.py --indices 5,10,25
+  ```
+
+  *(Note: Indices refer to the position within the *test split*, starting from 0).*
+
+- **Specify the number of random predictions to show (if not using `--indices`):**
+  ```bash
+  python scripts/predict.py --num_predictions 5
+  ```
+
+Check the `outputs/plots/` directory for the generated prediction comparison images.
